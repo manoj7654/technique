@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
-import '../css/EditUser.css'
+import '../css/EditUser.css';
 
 const EditUser = () => {
     const { id } = useParams();
@@ -9,8 +9,9 @@ const EditUser = () => {
     const [user, setUser] = useState({
         name: '',
         email: '',
-        company: { name: '' } 
+        company: { name: '' }
     });
+    const [alert, setAlert] = useState({ message: '', type: '' });
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -18,7 +19,7 @@ const EditUser = () => {
                 const response = await axios.get(`https://jsonplaceholder.typicode.com/users/${id}`);
                 setUser(response.data);
             } catch (error) {
-                console.error('Error fetching user data', error);
+                setAlert({ message: 'Error fetching user data. Please try again.', type: 'error' });
             }
         };
 
@@ -43,16 +44,26 @@ const EditUser = () => {
     const handleFormSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axios.put(`https://jsonplaceholder.typicode.com/users/${id}`, user);
-            navigate('/', { state: { updatedUser: user } });
+            const response = await axios.put(`https://jsonplaceholder.typicode.com/users/${id}`, user);
+            if (response.status === 200) {
+                setAlert({ message: 'User updated successfully!', type: 'success' });
+                setTimeout(() => navigate('/', { state: { updatedUser: user } }), 2000); 
+            } else {
+                setAlert({ message: 'Failed to update user. Please try again.', type: 'error' });
+            }
         } catch (error) {
-            console.error('Error updating user data', error);
+            setAlert({ message: 'Error updating user data. Please try again.', type: 'error' });
         }
     };
 
     return (
         <div className='edit'>
             <h2>Edit User</h2>
+            {alert.message && (
+                <div className={`alert ${alert.type}`}>
+                    {alert.message}
+                </div>
+            )}
             <form onSubmit={handleFormSubmit}>
                 <label>
                     Name:
